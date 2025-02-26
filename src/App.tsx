@@ -1,11 +1,8 @@
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
 import "./App.css";
 
 import { invoke } from "@tauri-apps/api/core";
-// import { open } from "@tauri-apps/api/dialog";
 import { open } from '@tauri-apps/plugin-dialog';
-// import { readDir } from "@tauri-apps/api/fs";
 import { readDir } from "@tauri-apps/plugin-fs"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,10 +18,6 @@ export default function App() {
 
     const handleDirectorySelect = async () => {
         try {
-            // const selected = await open({ directory: true });
-            // if (selected) {
-            //     setDirectory(selected as string);
-            // }
             const selectedDirectory = await open({
                 directory: true,
                 multiple: false,
@@ -50,9 +43,6 @@ export default function App() {
         try {
             const entries = await readDir(directory, { recursive: true });
             console.log('Entrada', entries);
-            // const filteredFiles = entries
-            //     .map((entry) => entry.name || "")
-            //     .filter((name) => name.toLowerCase().includes(searchTerm.toLowerCase()));
             const result: string[] = await invoke("search_pdfs", {
                 directory,
                 searchTerm,
@@ -73,8 +63,9 @@ export default function App() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col items-center p-8">
-            <Card className="w-full max-w-4xl shadow-lg">
+        <div className="w-screen h-screen bg-gray-50 flex flex-col items-center justify-center p-8">
+
+            <Card className="w-full h-full shadow-lg">
                 <CardHeader className="bg-blue-600 text-white rounded-t-lg">
                     <CardTitle className="text-2xl font-bold flex items-center justify-center">
                         <FileText className="mr-2" /> Buscador em PDFs
