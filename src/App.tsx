@@ -1,51 +1,113 @@
 import { useState } from "react";
 import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
 import "./App.css";
 
-function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
+import { invoke } from "@tauri-apps/api/core";
+// import { open } from "@tauri-apps/api/dialog";
+import { open } from '@tauri-apps/plugin-dialog';
+// import { readDir } from "@tauri-apps/api/fs";
+import { readDir } from "@tauri-apps/plugin-fs"
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import { FolderOpen, Search, X } from "lucide-react";
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
-  }
+export default function App() {
+    const [directory, setDirectory] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [progress, setProgress] = useState(0);
+    const [files, setFiles] = useState<string[]>([]);
 
-  return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
+    const handleDirectorySelect = async () => {
+        try {
+            // const selected = await open({ directory: true });
+            // if (selected) {
+            //     setDirectory(selected as string);
+            // }
+            const selectedDirectory = await open({
+                directory: true,
+                multiple: false,
+                title: 'Selecione um Diretório',
+            });
 
-      <div className="row">
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
+            if (selectedDirectory) {
+                console.log('Diretório selecionado:', selectedDirectory);
+                alert(`Diretório selecionado: ${selectedDirectory}`);
+                setDirectory(selectedDirectory as string);
+            } else {
+                console.log('Nenhum diretório selecionado.');
+            }
+        } catch (error) {
+            console.error("Erro ao selecionar diretório:", error);
+        }
+    };
 
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
-    </main>
-  );
+    const handleSearch = async () => {
+        console.log(directory);
+        if (!directory) return;
+        setProgress(30);
+        try {
+            const entries = await readDir(directory, { recursive: true });
+            console.log('Entrada', entries);
+            // const filteredFiles = entries
+            //     .map((entry) => entry.name || "")
+            //     .filter((name) => name.toLowerCase().includes(searchTerm.toLowerCase()));
+            const result: string[] = await invoke("search_pdfs", {
+                directory,
+                searchTerm,
+            });
+            console.log('result', result);
+            setFiles(result);
+            setProgress(100);
+        } catch (error) {
+            console.error("Erro ao buscar arquivos:", error);
+        }
+    };
+
+    const handleClear = () => {
+        setDirectory(null);
+        setSearchTerm("");
+        setProgress(0);
+        setFiles([]);
+    };
+
+    return (
+        <div className="h-screen w-screen flex flex-col items-center justify-center p-6 bg-white">
+            <h2 className="text-2xl font-semibold mb-6">Pesquisa de Arquivos</h2>
+            <div className="w-full max-w-xl space-y-6">
+                <div className="flex items-center space-x-4">
+                    <Button onClick={handleDirectorySelect} variant="outline">
+                        <FolderOpen className="mr-2" /> Selecionar Diretório
+                    </Button>
+                    <span>{directory || "Nenhum diretório selecionado"}</span>
+                </div>
+                <Input
+                    type="text"
+                    placeholder="Digite um termo de pesquisa..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <div className="flex space-x-4">
+                    <Button onClick={handleSearch}>
+                        <Search className="mr-2" /> Pesquisar
+                    </Button>
+                    <Button onClick={handleClear} variant="destructive">
+                        <X className="mr-2" /> Limpar
+                    </Button>
+                </div>
+                <Progress value={progress} className="w-full" />
+                <ul className="list-disc pl-5">
+                    {files.length > 0 ? (
+                        files.map((file, index) => (
+                            <li key={index} className="text-gray-700">
+                                {file}
+                            </li>
+                        ))
+                    ) : (
+                        <li className="text-gray-500">Nenhum arquivo encontrado</li>
+                    )}
+                </ul>
+            </div>
+        </div>
+    );
 }
-
-export default App;
