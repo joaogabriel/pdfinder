@@ -21,15 +21,11 @@ export default function App() {
             const selectedDirectory = await open({
                 directory: true,
                 multiple: false,
-                title: 'Selecione um Diretório',
+                title: 'Selecione o diretório em que os PDFs se encontram',
             });
 
             if (selectedDirectory) {
-                console.log('Diretório selecionado:', selectedDirectory);
-                alert(`Diretório selecionado: ${selectedDirectory}`);
                 setDirectory(selectedDirectory as string);
-            } else {
-                console.log('Nenhum diretório selecionado.');
             }
         } catch (error) {
             console.error("Erro ao selecionar diretório:", error);
@@ -37,17 +33,14 @@ export default function App() {
     };
 
     const handleSearch = async () => {
-        console.log(directory);
         if (!directory) return;
         setProgress(30);
         try {
             const entries = await readDir(directory, { recursive: true });
-            console.log('Entrada', entries);
             const result: string[] = await invoke("search_pdfs", {
                 directory,
                 searchTerm,
             });
-            console.log('result', result);
             setFiles(result);
             setProgress(100);
         } catch (error) {

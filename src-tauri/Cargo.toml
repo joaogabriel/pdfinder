@@ -1,5 +1,5 @@
 [package]
-name = "pdfinder"
+name = "BuscadorPDFs"
 version = "0.1.0"
 description = "A Tauri App"
 authors = ["you"]
@@ -26,5 +26,5 @@ tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 walkdir = "2"
 pdf-extract = "0.7"
-#lopdf = "0.31.0"
-#walkdir = "2.3.3"
+tokio = { version = "1", features = ["full"] }
+rayon = "1.7"
