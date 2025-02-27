@@ -3,7 +3,6 @@ import "./App.css";
 
 import { invoke } from "@tauri-apps/api/core";
 import { open } from '@tauri-apps/plugin-dialog';
-import { readDir } from "@tauri-apps/plugin-fs"
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -36,7 +35,6 @@ export default function App() {
         if (!directory) return;
         setProgress(30);
         try {
-            const entries = await readDir(directory, { recursive: true });
             const result: string[] = await invoke("search_pdfs", {
                 directory,
                 searchTerm,
